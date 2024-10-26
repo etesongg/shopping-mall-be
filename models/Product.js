@@ -9,7 +9,11 @@ const productSchema = Schema(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     stock: { type: Object, required: true }, // 재고
-    status: { type: String, default: "active" },
+    status: {
+      type: String,
+      enum: ["preparing", "shipping", "delivered", "cancelled"],
+      default: "active",
+    },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
