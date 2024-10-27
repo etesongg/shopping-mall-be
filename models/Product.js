@@ -8,10 +8,10 @@ const productSchema = Schema(
     category: { type: Array, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    stock: { type: Object, required: true }, // 재고
+    stock: { type: Object, required: true, lowercase: true }, // 재고
     status: {
       type: String,
-      enum: ["preparing", "shipping", "delivered", "cancelled"],
+      enum: ["active", "inactive", "sold-out"],
       default: "active",
     },
     isDeleted: { type: Boolean, default: false },

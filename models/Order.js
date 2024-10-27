@@ -8,7 +8,11 @@ const orderSchema = Schema(
     shipTo: { type: Object, required: true },
     contect: { type: Object, required: true },
     totalPrice: { type: Number, required: true, default: 0 },
-    status: { type: String, default: "preparing" },
+    status: {
+      type: String,
+      enum: ["preparing", "shipping", "delivered", "cancelled"],
+      default: "preparing",
+    },
     items: [
       {
         productId: { type: mongoose.ObjectId, ref: Product },

@@ -39,4 +39,17 @@ authController.authenticate = async (req, res, next) => {
   }
 };
 
+authController.checkAdminPermission = async (req, res, next) => {
+  try {
+    // token에서 admin인지 확인 // 위에 authenticate로 만들어놓음, 그러므로 라우터로 미들웨어 추가
+    const { userId } = req;
+    const user = await User.findById(userId);
+    console.log(user);
+    if (user.level !== "admin") throw new Error("no permission");
+    next();
+  } catch (e) {
+    res.status(400).json({ ststus: "fail", message: e.message });
+  }
+};
+
 module.exports = authController;
