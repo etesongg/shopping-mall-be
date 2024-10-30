@@ -37,19 +37,31 @@ productController.createProduct = async (req, res) => {
 productController.getProducts = async (req, res) => {
   try {
     const { page, name } = req.query;
-    const cond = name ? { name: { $regex: name, $options: "i" } } : {}; // 정규화, options insensitive(대소문자 구분x)
-    let query = Product.find(cond);
+    const cond = {
+      ...(name ? { name: { $regex: name, $options: "i" } } : {}),
+      isDeleted: false,
+    }; // 정규화, options insensitive(대소문자 구분x)
+    let query = Product.find(cond).sort({ _id: -1 });
     let response = { status: "success" };
+
+    const totalItemNum = await Product.countDocuments(cond); // count()는 결과의 갯수만 반환함
+    response.totalItemNum = totalItemNum; // totalItemNum 추가
 
     if (page) {
       query.skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE);
-      const totalItemNum = await Product.countDocuments(cond); // count()는 결과의 갯수만 반환함
       const totalPageNum = Math.ceil(totalItemNum / PAGE_SIZE);
       response.totalPageNum = totalPageNum;
     }
 
     const productList = await query.exec(); // 선언과 실행 분리, 조건을 다 받고 한번에 실행하기 위해
-    response.data = productList;
+
+    // 상품 목록에 역순 rn 속성 추가
+    const paginatedProductList = productList.map((product, index) => ({
+      ...product.toObject(),
+      rn: totalItemNum - ((page - 1) * PAGE_SIZE + index),
+    }));
+
+    response.data = paginatedProductList;
     res.status(200).json(response);
   } catch (e) {
     res.status(400).json({ status: "fail", message: e.message });
@@ -74,9 +86,24 @@ productController.updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       { _id: productId },
       { sku, name, size, image, category, description, price, stock, status },
-      { new: true } // 업데이트한 후 새로운 값을 반환받을 수 있음
+      { new: true } // 업데이트한 후 업데이트된 값을 반환받기
     );
 
+    if (!product) throw new Error("item doesn't exist");
+    res.status(200).json({ status: "success", data: product });
+  } catch (e) {
+    res.status(400).json({ status: "fail", message: e.message });
+  }
+};
+
+productController.deleteProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await Product.findByIdAndUpdate(
+      { _id: productId },
+      { isDeleted: true },
+      { new: true }
+    );
     if (!product) throw new Error("item doesn't exist");
     res.status(200).json({ status: "success", data: product });
   } catch (e) {
