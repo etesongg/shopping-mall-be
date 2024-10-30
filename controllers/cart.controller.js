@@ -65,4 +65,27 @@ cartController.deleteCartItem = async (req, res) => {
   }
 };
 
+cartController.editCartItem = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { id } = req.params;
+    const { qty } = req.body;
+    const cart = await Cart.findOne({ userId }).populate({
+      path: "items",
+      populate: {
+        path: "productId",
+        model: "Product",
+      },
+    });
+    if (!cart) throw new Error("there is no cart for this user");
+    const index = cart.items.findIndex((item) => item._id.equals(id)); // 조건에 맞으면 index를 없으면 -1 반환
+    if (index === -1) throw new Error("can not find item");
+    cart.items[index].qty = qty; // 업데이트
+    await cart.save();
+    return res.status(200).json({ status: "scueess", data: cart.items });
+  } catch (e) {
+    return res.status(400).json({ status: "fail", message: e.message });
+  }
+};
+
 module.exports = cartController;
