@@ -88,4 +88,15 @@ cartController.editCartItem = async (req, res) => {
   }
 };
 
+cartController.getCartQty = async (req, res) => {
+  try {
+    const { userId } = req;
+    const cart = await Cart.findOne({ userId });
+    if (!cart) throw new Error("there is no cart!");
+    return res.status(200).json({ status: "success", qty: cart.items.length });
+  } catch (e) {
+    return res.status(400).json({ status: "fail", message: e.message });
+  }
+};
+
 module.exports = cartController;

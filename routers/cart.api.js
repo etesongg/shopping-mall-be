@@ -11,5 +11,6 @@ router.delete(
   cartController.deleteCartItem
 );
 router.put("/:id", authController.authenticate, cartController.editCartItem);
+router.get("/qty", authController.authenticate, cartController.getCartQty);
 
 module.exports = router;
