@@ -23,7 +23,7 @@ authController.loginWithEmail = async (req, res) => {
     res.status(400).json({ status: "fail", message: e.message });
   }
 };
-
+// 사용자 인증 처리
 authController.authenticate = async (req, res, next) => {
   try {
     const tokenString = req.headers.authorization;
@@ -38,7 +38,7 @@ authController.authenticate = async (req, res, next) => {
     res.status(400).json({ status: "fail", message: e.message });
   }
 };
-
+// admin 권한 처리
 authController.checkAdminPermission = async (req, res, next) => {
   try {
     // token에서 admin인지 확인 // 위에 authenticate로 만들어놓음, 그러므로 라우터로 미들웨어 추가
