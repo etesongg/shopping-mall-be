@@ -100,11 +100,22 @@ productController.deleteProduct = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findByIdAndUpdate(
-      { _id: productId },
+      productId,
       { isDeleted: true },
       { new: true }
     );
     if (!product) throw new Error("item doesn't exist");
+    res.status(200).json({ status: "success", data: product });
+  } catch (e) {
+    res.status(400).json({ status: "fail", message: e.message });
+  }
+};
+
+productController.getProductById = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    if (!product) throw new Error("no item found");
     res.status(200).json({ status: "success", data: product });
   } catch (e) {
     res.status(400).json({ status: "fail", message: e.message });
