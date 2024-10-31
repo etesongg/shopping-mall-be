@@ -11,7 +11,7 @@ const productSchema = Schema(
     stock: { type: Object, required: true, lowercase: true }, // 재고
     status: {
       type: String,
-      enum: ["active", "inactive", "sold-out"],
+      enum: ["active", "inactive"],
       default: "active",
     },
     isDeleted: { type: Boolean, default: false },
