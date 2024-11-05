@@ -1,7 +1,9 @@
+const { populate } = require("dotenv");
 const Order = require("../models/Order");
 const productController = require("../controllers/productController");
 const { randomStringGenerator } = require("../utils/randomStringGenerator");
 
+const PAGE_SIZE = 5;
 const orderController = {};
 
 orderController.createOrder = async (req, res) => {
@@ -37,6 +39,54 @@ orderController.createOrder = async (req, res) => {
     res.status(200).json({ status: "success", orderNum: newOrder.orderNum });
   } catch (e) {
     return res.status(400).json({ status: "fail", message: e.message });
+  }
+};
+
+orderController.getOrderList = async (req, res) => {
+  try {
+    const { page, name } = req.query;
+    const cond = {
+      ...(name ? { name: { $regex: name, $options: "i" } } : {}),
+    }; // 정규화, options insensitive(대소문자 구분x)
+    let query = Order.find(cond)
+      .sort({ _id: -1 })
+      .populate("userId")
+      .populate({
+        path: "items",
+        populate: {
+          path: "productId",
+          model: "Product",
+        },
+      });
+    let response = { status: "success" };
+
+    const totalItemNum = await Order.countDocuments(cond); // count()는 결과의 갯수만 반환함
+    response.totalItemNum = totalItemNum; // totalItemNum 추가
+
+    if (page) {
+      query.skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE);
+      const totalPageNum = Math.ceil(totalItemNum / PAGE_SIZE);
+      response.totalPageNum = totalPageNum;
+    }
+
+    const orderList = await query.exec(); // 선언과 실행 분리, 조건을 다 받고 한번에 실행하기 위해
+
+    // 상품 목록에 역순 rn 속성 추가
+    const paginatedOrderList = orderList.map((order, index) => ({
+      ...order.toObject(),
+      rn: totalItemNum - ((page - 1) * PAGE_SIZE + index),
+    }));
+    console.log("Condition:", cond);
+    console.log("Total Items:", totalItemNum);
+    console.log("Page:", page);
+    console.log("Page Size:", PAGE_SIZE);
+    console.log("Total Pages:", response.totalPageNum);
+    console.log("Order List:", orderList);
+
+    response.data = paginatedOrderList;
+    res.status(200).json(response);
+  } catch (e) {
+    res.status(400).json({ status: "fail", message: e.message });
   }
 };
 
