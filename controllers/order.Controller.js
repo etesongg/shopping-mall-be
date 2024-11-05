@@ -44,9 +44,9 @@ orderController.createOrder = async (req, res) => {
 
 orderController.getOrderList = async (req, res) => {
   try {
-    const { page, name } = req.query;
+    const { page, ordernum } = req.query;
     const cond = {
-      ...(name ? { name: { $regex: name, $options: "i" } } : {}),
+      ...(ordernum ? { orderNum: { $regex: ordernum, $options: "i" } } : {}),
     }; // 정규화, options insensitive(대소문자 구분x)
     let query = Order.find(cond)
       .sort({ _id: -1 })
@@ -76,12 +76,6 @@ orderController.getOrderList = async (req, res) => {
       ...order.toObject(),
       rn: totalItemNum - ((page - 1) * PAGE_SIZE + index),
     }));
-    console.log("Condition:", cond);
-    console.log("Total Items:", totalItemNum);
-    console.log("Page:", page);
-    console.log("Page Size:", PAGE_SIZE);
-    console.log("Total Pages:", response.totalPageNum);
-    console.log("Order List:", orderList);
 
     response.data = paginatedOrderList;
     res.status(200).json(response);
