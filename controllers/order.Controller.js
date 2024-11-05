@@ -42,6 +42,30 @@ orderController.createOrder = async (req, res) => {
   }
 };
 
+orderController.getOrder = async (req, res) => {
+  try {
+    const { userId } = req;
+    const orderList = await Order.find({ userId })
+      .select("+createdAt")
+      .populate({
+        path: "items",
+        populate: {
+          path: "productId",
+          model: "Product",
+          select: "image name",
+        },
+      })
+      .sort({ _id: -1 })
+      .lean(); // toJSON메서드에서 +createdAt를 삭제하고 있어 결과에 포함 안됨, Mongoose 문서 대신 일반 JavaScript 객체를 반환하므로 toJSON 메서드를 우회
+
+    const totalItemNum = await Order.countDocuments({ userId });
+    const totalPageNum = Math.ceil(totalItemNum / PAGE_SIZE);
+    res.status(200).json({ status: "success", data: orderList, totalPageNum });
+  } catch (e) {
+    return res.status(400).json({ status: "fail", message: e.message });
+  }
+};
+
 orderController.getOrderList = async (req, res) => {
   try {
     const { page, ordernum } = req.query;
