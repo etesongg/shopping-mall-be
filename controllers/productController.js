@@ -1,6 +1,6 @@
 const Product = require("../models/Product");
 
-const PAGE_SIZE = 5;
+// const PAGE_SIZE = 5;
 const productController = {};
 
 productController.createProduct = async (req, res) => {
@@ -36,6 +36,11 @@ productController.createProduct = async (req, res) => {
 
 productController.getProducts = async (req, res) => {
   try {
+    const PAGE_SIZE = req.query.itemsPerPage
+      ? parseInt(req.query.itemsPerPage)
+      : 5;
+    console.log("Received itemsPerPage:", req.query.itemsPerPage);
+    console.log("PAGE_SIZE:", PAGE_SIZE);
     const { page, name } = req.query;
     const cond = {
       ...(name ? { name: { $regex: name, $options: "i" } } : {}),
